@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADI ANKASOFIA - BareMetalOS Hacker IDE</title>
+<style>
+/* Turbo Pascal Teması */
+:root {
+--bg-blue: #0000AA;
+--bg-dark: #000055;
+--bg-darker: #00002A;
+--text-white: #FFFFFF;
+--text-cyan: #00FFFF;
+--text-yellow: #FFFF00;
+--text-green: #00FF00;
+--text-red: #FF0000;
+--border-blue: #5555FF;
+--highlight-blue: #5555FF;
+--highlight-text: #000000;
+}
+
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Courier New', monospace;
+font-size: 16px;
+background-color: var(--bg-blue);
+color: var(--text-white);
+line-height: 1.4;
+overflow: hidden;
+height: 100vh;
+}
+
+/* Ana Konteyner */
+#container {
+display: flex;
+flex-direction: column;
+height: 100vh;
+padding: 2px;
+}
+
+/* Menü Çubuğu */
+#menu-bar {
+background-color: var(--bg-dark);
+border: 1px solid var(--border-blue);
+padding: 0 2px;
+height: 24px;
+display: flex;
+align-items: center;
+margin-bottom: 1px;
+}
+
+.menu-item {
+position: relative;
+padding: 2px 8px;
+cursor: pointer;
+user-select: none;
+}
+
+.menu-item:hover {
+background-color: var(--text-white);
+color: var(--bg-dark);
+}
+
+.menu-item.active {
+background-color: var(--text-white);
+color: var(--bg-dark);
+}
+
+.submenu {
+display: none;
+position: absolute;
+top: 100%;
+left: 0;
+background-color: var(--bg-dark);
+border: 1px solid var(--border-blue);
+min-width: 150px;
+z-index: 1000;
+}
+
+.menu-item:hover .submenu {
+display: block;
+}
+
+.submenu-item {
+padding: 4px 12px;
+white-space: nowrap;
+}
+
+.submenu-item:hover {
+background-color: var(--text-white);
+color: var(--bg-dark);
+}
+
+.submenu-item.disabled {
+color: #888888;
+cursor: not-allowed;
+}
+
+.submenu-item.disabled:hover {
+background-color: var(--bg-dark);
+color: #888888;
+}
+
+.submenu-divider {
+height: 1px;
+background-color: var(--border-blue);
+margin: 4px 0;
+}
+
+/* Ana İçerik Alanı */
+#main-area {
+display: flex;
+flex: 1;
+gap: 2px;
+}
+
+/* Dosya Gezgini */
+#file-explorer {
+width: 250px;
+background-color: var(--bg-dark);
+border: 1px solid var(--border-blue);
+display: flex;
+flex-direction: column;
+}
+
+.panel-header {
+background-color: var(--bg-darker);
+padding: 4px 8px;
+border-bottom: 1px solid var(--border-blue);
+font-weight: bold;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.panel-content {
+flex: 1;
+overflow: auto;
+padding: 4px;
+}
+
+#file-list {
+list-style: none;
+}
+
+.file-item {
+padding: 4px 8px;
+cursor: pointer;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+
+.file-item:hover {
+background-color: var(--highlight-blue);
+color: var(--highlight-text);
+}
+
+.file-item.selected {
+background-color: var(--text-white);
+color: var(--bg-dark);
+}
+
+.file-icon {
+width: 16px;
+text-align: center;
+}
+
+.file-icon.folder:before {
+content: '[+]';
+}
+
+.file-icon.python:before {
+content: 'Py';
+color: var(--text-yellow);
+}
+
+.file-icon.text:before {
+content: 'Txt';
+color: var(--text-cyan);
+}
+
+.file-icon.other:before {
+content: 'Fil';
+color: var(--text-white);
+}
+
+/* Editör Alanı */
+#editor-area {
+flex: 1;
+display: flex;
+flex-direction: column;
+background-color: var(--bg-dark);
+border: 1px solid var(--border-blue);
+}
+
+#editor-tabs {
+display: flex;
+background-color: var(--bg-darker);
+border-bottom: 1px solid var(--border-blue);
+overflow-x: auto;
+}
+
+.tab {
+padding: 4px 12px;
+cursor: pointer;
+white-space: nowrap;
+border-right: 1px solid var(--border-blue);
+}
+
+.tab:hover {
+background-color: var(--highlight-blue);
+color: var(--highlight-text);
+}
+
+.tab.active {
+background-color: var(--text-white);
+color: var(--bg-dark);
+}
+
+.tab-close {
+margin-left: 8px;
+cursor: pointer;
+}
+
+#editor-container {
+flex: 1;
+position: relative;
+}
+
+#code-editor {
+width: 100%;
+height: 100%;
+background-color: var(--bg-dark);
+color: var(--text-white);
+font-family: 'Courier New', monospace;
+font-size: 16px;
+line-height: 1.4;
+border: none;
+padding: 8px;
+resize: none;
+outline: none;
+tab-size: 4;
+}
+
+/* Terminal Alanı */
+#terminal-area {
+height: 200px;
+display: flex;
+flex-direction: column;
+background-color: #000000;
+border: 1px solid var(--border-blue);
+margin-top: 2px;
+}
+
+#terminal-output {
+flex: 1;
+overflow-y: auto;
+padding: 8px;
+font-family: 'Courier New', monospace;
+font-size: 14px;
+color: var(--text-green);
+}
+
+.terminal-line {
+margin-bottom: 2px;
+}
+
+.terminal-line.error {
+color: var(--text-red);
+}
+
+.terminal-line.info {
+color: var(--text-cyan);
+}
+
+.terminal-line.success {
+color: var(--text-green);
+}
+
+#terminal-input {
+background-color: #000000;
+color: var(--text-green);
+border: none;
+border-top: 1px solid var(--border-blue);
+padding: 4px 8px;
+font-family: 'Courier New', monospace;
+font-size: 14px;
+outline: none;
+}
+
+/* Durum Çubuğu */
+#status-bar {
+background-color: var(--bg-darker);
+border: 1px solid var(--border-blue);
+padding: 2px 8px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+height: 20px;
+margin-top: 2px;
+font-size: 12px;
+}
+
+.status-item {
+margin-right: 12px;
+}
+
+/* Butonlar */
+.button {
+background-color: var(--bg-dark);
+color: var(--text-white);
+border: 1px solid var(--border-blue);
+padding: 2px 8px;
+cursor: pointer;
+font-family: 'Courier New', monospace;
+font-size: 14px;
+}
+
+.button:hover {
+background-color: var(--highlight-blue);
+color: var(--highlight-text);
+}
+
+.button:active {
+background-color: var(--text-white);
+color: var(--bg-dark);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+width: 12px;
+height: 12px;
+}
+
+::-webkit-scrollbar-track {
+background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+background: var(--border-blue);
+}
+
+::-webkit-scrollbar-thumb:hover {
+background: var(--highlight-blue);
+}
+
+/* Modal */
+.modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.8);
+z-index: 10000;
+align-items: center;
+justify-content: center;
+}
+
+.modal-content {
+background-color: var(--bg-dark);
+border: 2px solid var(--border-blue);
+padding: 20px;
+min-width: 300px;
+}
+
+.modal-header {
+margin-bottom: 15px;
+color: var(--text-cyan);
+font-size: 18px;
+}
+
+.modal-input {
+width: 100%;
+padding: 8px;
+margin-bottom: 15px;
+background-color: #000022;
+color: var(--text-white);
+border: 1px solid var(--border-blue);
+font-family: 'Courier New', monospace;
+}
+
+.modal-buttons {
+display: flex;
+gap: 10px;
+justify-content: flex-end;
+}
+
+/* Syntax Highlighting */
+.keyword { color: var(--text-cyan); }
+.string { color: var(--text-yellow); }
+.comment { color: #888888; }
+.function { color: var(--text-green); }
+.number { color: #FF8888; }
+.operator { color: var(--text-white); }
+
+/* Responsive */
+@media (max-width: 1024px) {
+#file-explorer {
+width: 200px;
+}
+}
+
+@media (max-width: 768px) {
+#file-explorer {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<div id="container">
+<!-- Menü Çubuğu -->
+<div id="menu-bar">
+<div class="menu-item" onclick="showSubmenu('file-menu')">
+Dosya
+<div class="submenu" id="file-menu">
+<div class="submenu-item" onclick="newFile()">Yeni (Ctrl+N)</div>
+<div class="submenu-item" onclick="openFile()">Aç (Ctrl+O)</div>
+<div class="submenu-item" onclick="saveFile()">Kaydet (Ctrl+S)</div>
+<div class="submenu-item" onclick="saveAs()">Farklı Kaydet</div>
+<div class="submenu-divider"></div>
+<div class="submenu-item" onclick="openFolder()">Dizin Aç</div>
+<div class="submenu-divider"></div>
+<div class="submenu-item" onclick="exitIDE()">Çıkış (Alt+X)</div>
+</div>
+</div>
+
+<div class="menu-item" onclick="showSubmenu('edit-menu')">
+Düzen
+<div class="submenu" id="edit-menu">
+<div class="submenu-item" onclick="undo()">Geri Al (Ctrl+Z)</div>
+<div class="submenu-item" onclick="redo()">Yinele (Ctrl+Y)</div>
+<div class="submenu-divider"></div>
+<div class="submenu-item" onclick="cut()">Kes (Ctrl+X)</div>
+<div class="submenu-item" onclick="copy()">Kopyala (Ctrl+C)</div>
+<div class="submenu-item" onclick="paste()">Yapıştır (Ctrl+V)</div>
+<div class="submenu-divider"></div>
+<div class="submenu-item" onclick="selectAll()">Tümünü Seç (Ctrl+A)</div>
+</div>
+</div>
+
+<div class="menu-item" onclick="showSubmenu('run-menu')">
+Çalıştır
+<div class="submenu" id="run-menu">
+<div class="submenu-item" onclick="runCode()">Çalıştır (F9)</div>
+<div class="submenu-item" onclick="runWithArgs()">Argümanlarla Çalıştır</div>
+<div class="submenu-item" onclick="debugCode()">Hata Ayıkla (F8)</div>
+</div>
+</div>
+
+<div class="menu-item" onclick="showSubmenu('tools-menu')">
+Araçlar
+<div class="submenu" id="tools-menu">
+<div class="submenu-item" onclick="openTerminal()">Terminal</div>
+<div class="submenu-item" onclick="openExplorer()">Dosya Gezgini</div>
+<div class="submenu-divider"></div>
+<div class="submenu-item" onclick="showSystemInfo()">Sistem Bilgisi</div>
+<div class="submenu-item" onclick="showPythonInfo()">Python Bilgisi</div>
+</div>
+</div>
+
+<div class="menu-item" onclick="showSubmenu('help-menu')">
+Yardım
+<div class="submenu" id="help-menu">
+<div class="submenu-item" onclick="showHelp()">Yardım (F1)</div>
+<div class="submenu-item" onclick="showAbout()">ADI ANKASOFIA Hakkında</div>
+</div>
+</div>
+</div>
+
+<!-- Ana İçerik Alanı -->
+<div id="main-area">
+<!-- Dosya Gezgini -->
+<div id="file-explorer">
+<div class="panel-header">
+<span>Dosyalar</span>
+<div>
+<button class="button" onclick="refreshFiles()" title="Yenile">↻</button>
+<button class="button" onclick="newFolder()" title="Yeni Dizin">+📁</button>
+</div>
+</div>
+<div class="panel-content">
+<div id="current-path"></div>
+<ul id="file-list"></ul>
+</div>
+</div>
+
+<!-- Editör ve Terminal -->
+<div style="flex: 1; display: flex; flex-direction: column;">
+<!-- Editör Alanı -->
+<div id="editor-area">
+<div id="editor-tabs">
+<!-- Sekmeler buraya eklenecek -->
+</div>
+<div id="editor-container">
+<textarea id="code-editor" spellcheck="false"></textarea>
+</div>
+</div>
+
+<!-- Terminal Alanı -->
+<div id="terminal-area">
+<div class="panel-header">
+<span>Terminal</span>
+<div>
+<button class="button" onclick="clearTerminal()" title="Temizle">🗑</button>
+<button class="button" onclick="toggleTerminal()" title="Gizle/Göster">▼</button>
+</div>
+</div>
+<div id="terminal-output"></div>
+<input type="text" id="terminal-input" placeholder="Komut girin..." onkeypress="handleTerminalKey(event)">
+</div>
+</div>
+</div>
+
+<!-- Durum Çubuğu -->
+<div id="status-bar">
+<div>
+<span id="status-file">Yeni Dosya</span>
+<span class="status-item">|</span>
+<span id="status-ln-col">Satır: 1, Sütun: 1</span>
+<span class="status-item">|</span>
+<span id="status-size">0 bayt</span>
+</div>
+<div>
+<span id="status-python">Python: --</span>
+<span class="status-item">|</span>
+<span id="status-mode">INS</span>
+</div>
+</div>
+</div>
+
+<!-- Modaller -->
+<div id="modal-new-file" class="modal">
+<div class="modal-content">
+<div class="modal-header">Yeni Dosya</div>
+<input type="text" id="new-filename" class="modal-input" placeholder="dosya_adi.py" value="new_file.py">
+<div class="modal-buttons">
+<button class="button" onclick="createNewFile()">Oluştur</button>
+<button class="button" onclick="closeModal('modal-new-file')">İptal</button>
+</div>
+</div>
+</div>
+
+<div id="modal-save-as" class="modal">
+<div class="modal-content">
+<div class="modal-header">Farklı Kaydet</div>
+<input type="text" id="save-filename" class="modal-input" placeholder="dosya_adi.py">
+<div class="modal-buttons">
+<button class="button" onclick="saveFileAs()">Kaydet</button>
+<button class="button" onclick="closeModal('modal-save-as')">İptal</button>
+</div>
+</div>
+</div>
+
+<div id="modal-new-folder" class="modal">
+<div class="modal-content">
+<div class="modal-header">Yeni Dizin</div>
+<input type="text" id="new-foldername" class="modal-input" placeholder="dizin_adi">
+<div class="modal-buttons">
+<button class="button" onclick="createNewFolder()">Oluştur</button>
+<button class="button" onclick="closeModal('modal-new-folder')">İptal</button>
+</div>
+</div>
+</div>
+
+<div id="modal-system-info" class="modal">
+<div class="modal-content" style="min-width: 500px;">
+<div class="modal-header">Sistem Bilgisi</div>
+<div id="system-info-content" style="max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+Yükleniyor...
+</div>
+<div class="modal-buttons">
+<button class="button" onclick="closeModal('modal-system-info')">Kapat</button>
+</div>
+</div>
+</div>
+
+<div id="modal-about" class="modal">
+<div class="modal-content" style="min-width: 400px;">
+<div class="modal-header">ADI ANKASOFIA - BareMetalOS Hacker IDE</div>
+<div style="margin: 15px 0; line-height: 1.6;">
+<p><strong>Sürüm:</strong> 1.0.0 (2026)</p>
+<p><strong>Lisans:</strong> MIT</p>
+<p><strong>Geliştirici:</strong> ANKASOFIA Teknolojileri</p>
+<p><strong>Amaç:</strong> Turbo Pascal benzeri minimalist Python IDE</p>
+<hr style="border-color: var(--border-blue); margin: 10px 0;">
+<p>Bu IDE, sistemdeki Python yorumlayıcısını kullanarak kod çalıştırır.</p>
+<p>Tamamen yerel olarak çalışır, internet bağlantısı gerektirmez.</p>
+</div>
+<div class="modal-buttons">
+<button class="button" onclick="closeModal('modal-about')">Tamam</button>
+</div>
+</div>
+</div>
+
+<script>
+// Global değişkenler
+let currentFile = null;
+let files = [];
+let tabs = [];
+let activeTab = null;
+let isDirty = false;
+let serverPort = 8000;
+
+// Sayfa yüklendiğinde
+document.addEventListener('DOMContentLoaded', function() {
+// Port'u URL'den al
+const urlParams = new URLSearchParams(window.location.search);
+serverPort = urlParams.get('port') || 8000;
+
+// Başlangıç işlemleri
+loadSystemInfo();
+refreshFiles();
+setupEditor();
+setupKeyboardShortcuts();
+
+// Yeni bir sekme aç
+newTab('new_file.py', '# Yeni Python dosyası\ndef main():\n print("Merhaba Dünya!")\n\nif __name__ == "__main__":\n main()');
+
+// Terminal başlangıç mesajı
+addTerminalLine('✅ ADI ANKASOFIA Hacker IDE başlatıldı', 'success');
+addTerminalLine(`📡 Sunucu: http://localhost:${serverPort}`, 'info');
+addTerminalLine('💡 İpucu: F9 tuşuna basarak kodu çalıştırabilirsiniz', 'info');
+});
+
+// Sunucu API fonksiyonları
+async function apiRequest(endpoint, method = 'GET', data = null) {
+try {
+const url = `http://localhost:${serverPort}${endpoint}`;
+const options = {
+method: method,
+headers: {
+'Content-Type': 'application/json'
+}
+};
+
+if (data && (method === 'POST' || method === 'PUT')) {
+options.body = JSON.stringify(data);
+}
+
+const response = await fetch(url, options);
+
+if (!response.ok) {
+throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+}
+
+return await response.json();
+} catch (error) {
+console.error('API hatası:', error);
+addTerminalLine(`❌ API Hatası: ${error.message}`, 'error');
+return { success: false, error: error.message };
+}
+}
+
+// Dosya işlemleri
+async function refreshFiles() {
+const result = await apiRequest('/api/files');
+if (result.success) {
+files = result.files;
+renderFileList();
+document.getElementById('current-path').textContent = result.current_dir;
+}
+}
+
+function renderFileList() {
+const fileList = document.getElementById('file-list');
+fileList.innerHTML = '';
+
+files.forEach(file => {
+const li = document.createElement('li');
+li.className = 'file-item';
+li.onclick = () => selectFile(file);
+li.ondblclick = () => openSelectedFile(file);
+
+// İkon belirle
+let iconClass = 'other';
+if (file.type === 'directory') {
+iconClass = 'folder';
+} else if (file.name.endsWith('.py')) {
+iconClass = 'python';
+} else if (file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+iconClass = 'text';
+}
+
+li.innerHTML = `
+<span class="file-icon ${iconClass}"></span>
+<span>${file.name}</span>
+`;
+
+fileList.appendChild(li);
+});
+}
+
+async function openSelectedFile(file) {
+if (file.type === 'directory') {
+// Dizin değiştirme
+addTerminalLine(`📁 Dizin değiştiriliyor: ${file.name}`, 'info');
+return;
+}
+
+const result = await apiRequest(`/api/file?name=${encodeURIComponent(file.name)}`);
+if (result.success) {
+newTab(file.name, result.content);
+addTerminalLine(`📂 Açıldı: ${file.name} (${result.size} bayt)`, 'success');
+}
+}
+
+// Sekme işlemleri
+function newTab(filename, content = '') {
+const tabId = 'tab-' + Date.now();
+const tab = {
+id: tabId,
+filename: filename,
+content: content,
+saved: false
+};
+tabs.push(tab);
+activeTab = tab;
+
+// Sekme oluştur
+const tabsContainer = document.getElementById('editor-tabs');
+const tabElement = document.createElement('div');
+tabElement.className = 'tab active';
+tabElement.id = `tab-${tabId}`;
+tabElement.innerHTML = `
+${filename}
+<span class="tab-close" onclick="closeTab('${tabId}', event)">✕</span>
+`;
+tabElement.onclick = () => switchTab(tabId);
+tabsContainer.appendChild(tabElement);
+
+// Editör içeriğini güncelle
+updateEditor();
+
+// Durum çubuğunu güncelle
+updateStatusBar();
+
+return tabId;
+}
+
+function switchTab(tabId) {
+// Aktif sekmeyi değiştir
+document.querySelectorAll('.tab').forEach(tab => {
+tab.classList.remove('active');
+});
+
+const tabElement = document.getElementById(`tab-${tabId}`);
+if (tabElement) {
+tabElement.classList.add('active');
+}
+
+activeTab = tabs.find(tab => tab.id === tabId) || tabs[0];
+updateEditor();
+updateStatusBar();
+}
+
+function closeTab(tabId, event) {
+if (event) event.stopPropagation();
+
+const tabIndex = tabs.findIndex(tab => tab.id === tabId);
+if (tabIndex === -1) return;
+
+const tab = tabs[tabIndex];
+
+// Değişiklik kontrolü
+if (isDirty && !tab.saved) {
+if (!confirm(`"${tab.filename}" dosyasındaki değişiklikler kaydedilmedi. Kapatılsın mı?`)) {
+return;
+}
+}
+
+// Sekmeyi kaldır
+tabs.splice(tabIndex, 1);
+const tabElement = document.getElementById(`tab-${tabId}`);
+if (tabElement) {
+tabElement.remove();
+}
+
+// Başka sekme varsa ona geç
+if (tabs.length > 0) {
+switchTab(tabs[0].id);
+} else {
+// Hiç sekme yoksa yeni aç
+newTab('new_file.py', '');
+}
+}
+
+// Editör işlemleri
+function setupEditor() {
+const editor = document.getElementById('code-editor');
+
+editor.addEventListener('input', function() {
+if (activeTab) {
+activeTab.content = editor.value;
+activeTab.saved = false;
+isDirty = true;
+updateStatusBar();
+}
+});
+
+editor.addEventListener('keyup', function(e) {
+updateCursorPosition();
+});
+
+editor.addEventListener('click', updateCursorPosition);
+}
+
+function updateEditor() {
+const editor = document.getElementById('code-editor');
+if (activeTab) {
+editor.value = activeTab.content;
+isDirty = false;
+
+// Syntax highlighting
+setTimeout(() => {
+applySyntaxHighlighting();
+}, 10);
+}
+}
+
+function updateCursorPosition() {
+const editor = document.getElementById('code-editor');
+const text = editor.value.substring(0, editor.selectionStart);
+const lines = text.split('\n');
+const line = lines.length;
+const column = lines[lines.length - 1].length + 1;
+
+document.getElementById('status-ln-col').textContent = `Satır: ${line}, Sütun: ${column}`;
+}
+
+function updateStatusBar() {
+if (activeTab) {
+document.getElementById('status-file').textContent = activeTab.filename;
+document.getElementById('status-size').textContent = `${activeTab.content.length} bayt`;
+}
+}
+
+// Terminal işlemleri
+function addTerminalLine(text, type = 'normal') {
+const output = document.getElementById('terminal-output');
+const line = document.createElement('div');
+line.className = `terminal-line ${type}`;
+line.textContent = `> ${text}`;
+output.appendChild(line);
+output.scrollTop = output.scrollHeight;
+}
+
+function clearTerminal() {
+document.getElementById('terminal-output').innerHTML = '';
+}
+
+function toggleTerminal() {
+const terminal = document.getElementById('terminal-area');
+const toggleBtn = terminal.querySelector('.panel-header .button:last-child');
+
+if (terminal.style.height === '0px' || terminal.style.height === '0') {
+terminal.style.height = '200px';
+toggleBtn.textContent = '▼';
+} else {
+terminal.style.height = '0px';
+toggleBtn.textContent = '▲';
+}
+}
+
+async function handleTerminalKey(event) {
+if (event.key === 'Enter') {
+const input = document.getElementById('terminal-input');
+const command = input.value.trim();
+input.value = '';
+
+if (!command) return;
+
+addTerminalLine(command);
+
+// Özel komutlar
+if (command === 'clear') {
+clearTerminal();
+return;
+} else if (command === 'help') {
+addTerminalLine('Kullanılabilir komutlar:', 'info');
+addTerminalLine(' clear - Terminali temizle', 'info');
+addTerminalLine(' help - Bu yardımı göster', 'info');
+addTerminalLine(' ls - Dosyaları listele', 'info');
+addTerminalLine(' pwd - Çalışma dizinini göster', 'info');
+return;
+}
+
+// Sistem komutu çalıştır
+const result = await apiRequest('/api/execute', 'POST', { command: command });
+if (result.success) {
+if (result.output.stdout) {
+addTerminalLine(result.output.stdout);
+}
+if (result.output.stderr) {
+addTerminalLine(result.output.stderr, 'error');
+}
+}
+}
+}
+
+// ========== EKSİK FONKSİYONLAR (TAMAMLANDI) ==========
+
+// 1. Modal (Pencere) Yönetimi
+function showModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// 2. Menü Yönetimi
+function showSubmenu(menuId) {
+    // Tüm menüleri kapat
+    document.querySelectorAll('.submenu').forEach(menu => {
+        menu.style.display = 'none';
+    });
+    // İsteneni aç
+    const menu = document.getElementById(menuId);
+    if (menu) {
+        menu.style.display = 'block';
+    }
+}
+
+// 3. Dosya İşlemleri
+async function saveFile() {
+    if (!activeTab) return;
+
+    if (activeTab.filename === 'new_file.py' || !activeTab.saved) {
+        document.getElementById('save-filename').value = activeTab.filename;
+        showModal('modal-save-as');
+    } else {
+        await saveFileAs(activeTab.filename);
+    }
+}
+
+async function saveFileAs(filename) {
+    if (!filename) {
+        filename = document.getElementById('save-filename').value;
+    }
+    if (!filename) return;
+
+    const content = activeTab ? activeTab.content : '';
+    
+    const result = await apiRequest('/api/save', 'POST', {
+        filename: filename,
+        content: content
+    });
+    
+    if (result.success) {
+        if (activeTab) {
+            activeTab.filename = filename;
+            activeTab.saved = true;
+        }
+        closeModal('modal-save-as');
+        addTerminalLine(`💾 Kaydedildi: ${filename}`, 'success');
+        refreshFiles();
+    } else {
+        addTerminalLine(`❌ Kaydetme hatası: ${result.error}`, 'error');
+    }
+}
+
+function newFile() {
+    showModal('modal-new-file');
+}
+
+async function createNewFile() {
+    const filename = document.getElementById('new-filename').value;
+    if (!filename) return;
+    
+    const result = await apiRequest('/api/new', 'POST', {
+        name: filename,
+        is_dir: false
+    });
+    
+    if (result.success) {
+        closeModal('modal-new-file');
+        newTab(filename, '# Yeni dosya\n');
+        refreshFiles();
+        addTerminalLine(`📄 Yeni dosya: ${filename}`, 'success');
+    } else {
+        addTerminalLine(`❌ Hata: ${result.error}`, 'error');
+    }
+}
+
+// 4. Kod Çalıştırma
+async function runCode() {
+    if (!activeTab) {
+        addTerminalLine('⚠️ Önce bir dosya açın', 'error');
+        return;
+    }
+    
+    const code = document.getElementById('code-editor').value;
+    addTerminalLine('🔄 Kod çalıştırılıyor...', 'info');
+    
+    const result = await apiRequest('/api/run', 'POST', {
+        code: code,
+        filename: activeTab.filename
+    });
+    
+    if (result.success) {
+        if (result.output.stdout) {
+            addTerminalLine(result.output.stdout, 'normal');
+        }
+        if (result.output.stderr) {
+            addTerminalLine(result.output.stderr, 'error');
+        }
+        if (result.output.returncode === 0) {
+            addTerminalLine('✅ Program başarıyla tamamlandı', 'success');
+        } else {
+            addTerminalLine(`⚠️ Çıkış kodu: ${result.output.returncode}`, 'error');
+        }
+    } else {
+        addTerminalLine(`❌ Çalıştırma hatası: ${result.error}`, 'error');
+    }
+}
+
+// 5. Klavye Kısayolları
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        // F9 - Çalıştır
+        if (e.key === 'F9') {
+            e.preventDefault();
+            runCode();
+        }
+        // F8 - Debug
+        else if (e.key === 'F8') {
+            e.preventDefault();
+            addTerminalLine('🐛 Debug modu henüz aktif değil', 'info');
+        }
+        // Ctrl+S - Kaydet
+        else if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveFile();
+        }
+        // Ctrl+N - Yeni Dosya
+        else if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            newFile();
+        }
+    });
+}
+
+// 6. Diğer Menü Fonksiyonları
+function selectFile(file) {
+    document.querySelectorAll('.file-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+}
+
+function newFolder() {
+    showModal('modal-new-folder');
+}
+
+async function createNewFolder() {
+    const name = document.getElementById('new-foldername').value;
+    if (!name) return;
+    
+    const result = await apiRequest('/api/new', 'POST', {
+        name: name,
+        is_dir: true
+    });
+    
+    if (result.success) {
+        closeModal('modal-new-folder');
+        refreshFiles();
+        addTerminalLine(`📁 Yeni dizin: ${name}`, 'success');
+    }
+}
+
+function openFile() {
+    addTerminalLine('📂 Dosya açma penceresi (şimdilik dosya gezginini kullanın)', 'info');
+}
+
+function exitIDE() {
+    if (confirm('ADI ANKASOFIA\'dan çıkmak istediğinize emin misiniz?')) {
+        window.close();
+    }
+}
+
+function undo() { document.execCommand('undo'); }
+function redo() { document.execCommand('redo'); }
+function cut() { document.execCommand('cut'); }
+function copy() { document.execCommand('copy'); }
+function paste() { document.execCommand('paste'); }
+function selectAll() { document.getElementById('code-editor').select(); }
+
+function runWithArgs() {
+    addTerminalLine('⚙️ Argümanlarla çalıştırma (yakında eklenecek)', 'info');
+}
+
+function debugCode() {
+    addTerminalLine('🐛 Debug modu yakında aktif olacak', 'info');
+}
+
+function openTerminal() { addTerminalLine('🖥️ Terminal zaten açık!', 'info'); }
+function openExplorer() { addTerminalLine('📂 Dosya gezgini solda', 'info'); }
+
+async function showSystemInfo() {
+    showModal('modal-system-info');
+    const result = await apiRequest('/api/system');
+    if (result.success) {
+        const info = result.system;
+        document.getElementById('system-info-content').innerHTML = `
+            <p><strong>İşletim Sistemi:</strong> ${info.system} ${info.release}</p>
+            <p><strong>Mimari:</strong> ${info.machine}</p>
+            <p><strong>Python:</strong> ${info.python_version}</p>
+            <p><strong>Dizin:</strong> ${info.current_dir}</p>
+            <p><strong>CPU:</strong> ${info.cpu_count} çekirdek</p>
+        `;
+    }
+}
+
+function showPythonInfo() {
+    addTerminalLine('🐍 Python bilgisi için Sistem Bilgisi\'ne bakın', 'info');
+}
+
+function showHelp() {
+    addTerminalLine('❓ Yardım:', 'info');
+    addTerminalLine('F9: Kodu çalıştır', 'info');
+    addTerminalLine('Ctrl+S: Kaydet', 'info');
+    addTerminalLine('Ctrl+N: Yeni dosya', 'info');
+}
+
+function showAbout() {
+    showModal('modal-about');
+}
+
+function applySyntaxHighlighting() {
+    // Şimdilik boş - ileride Monaco Editor eklenecek
+}
+
+function saveAs() {
+    showModal('modal-save-as');
+}
+
+function openFolder() {
+    addTerminalLine('📁 Dizin açma özelliği yakında eklenecek', 'info');
+}
+
+async function loadSystemInfo() {
+    const result = await apiRequest('/api/system');
+    if (result.success) {
+        document.getElementById('status-python').textContent = `Python: ${result.system.python_version}`;
+    }
+}
+
+// Menü dışına tıklayınca kapanması için
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.menu-item')) {
+        document.querySelectorAll('.submenu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+});
+</script>
+</body>
+</html>
