@@ -393,7 +393,188 @@ display: flex;
 gap: 10px;
 justify-content: flex-end;
 }
+/* AYARLAR MODALI - Turbo Pascal Stili */
+#settingsModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 85, 0.95);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
 
+#settingsModal .modal-content {
+    background-color: var(--bg-dark);
+    border: 3px double var(--border-blue);
+    padding: 20px;
+    width: 500px;
+    color: var(--text-white);
+    font-family: 'Courier New', monospace;
+}
+
+#settingsModal .modal-header {
+    border-bottom: 2px solid var(--border-blue);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#settingsModal h2 {
+    margin: 0;
+    color: var(--text-yellow);
+    font-size: 18px;
+}
+
+#settingsModal .setting-item {
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#settingsModal label {
+    color: var(--text-cyan);
+}
+
+#settingsModal input,
+#settingsModal select {
+    background-color: #000022;
+    color: var(--text-green);
+    border: 1px solid var(--border-blue);
+    padding: 5px;
+    font-family: 'Courier New', monospace;
+    width: 200px;
+}
+
+#settingsModal input[type="checkbox"] {
+    width: auto;
+    margin-left: 10px;
+}
+
+#settingsModal .modal-footer {
+    border-top: 2px solid var(--border-blue);
+    margin-top: 15px;
+    padding-top: 15px;
+    text-align: right;
+}
+
+#settingsModal button {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    border: 2px outset var(--border-blue);
+    padding: 8px 20px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    margin-left: 10px;
+}
+
+#settingsModal button:hover {
+    background-color: var(--highlight-blue);
+    color: var(--highlight-text);
+}
+
+#settingsModal button.primary {
+    background-color: #008000;
+}
+
+/* GÖREV WİDGET'I */
+#taskWidget {
+    position: fixed;
+    right: 10px;
+    top: 100px;
+    width: 280px;
+    background-color: var(--bg-dark);
+    border: 2px solid var(--border-blue);
+    color: var(--text-white);
+    font-family: 'Courier New', monospace;
+    z-index: 100;
+    display: none;
+}
+
+#taskWidget .widget-header {
+    background-color: var(--bg-darker);
+    padding: 8px;
+    border-bottom: 1px solid var(--border-blue);
+    font-weight: bold;
+    color: var(--text-yellow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#taskWidget .widget-content {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+#taskWidget .task-item {
+    padding: 8px;
+    border-bottom: 1px dotted var(--border-blue);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+#taskWidget .task-item:hover {
+    background-color: var(--bg-darker);
+}
+
+#taskWidget .task-done {
+    text-decoration: line-through;
+    color: #888888;
+}
+
+#taskWidget .task-check {
+    cursor: pointer;
+    user-select: none;
+}
+
+#taskWidget .task-delete {
+    margin-left: auto;
+    cursor: pointer;
+    color: var(--text-red);
+}
+
+#taskWidget .task-priority-high { color: var(--text-red); }
+#taskWidget .task-priority-medium { color: var(--text-yellow); }
+#taskWidget .task-priority-low { color: var(--text-green); }
+
+#taskWidget .widget-footer {
+    padding: 10px;
+    border-top: 1px solid var(--border-blue);
+}
+
+#taskWidget input[type="text"] {
+    width: 100%;
+    background-color: #000022;
+    color: var(--text-green);
+    border: 1px solid var(--border-blue);
+    padding: 5px;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 8px;
+}
+
+#taskWidget button {
+    width: 100%;
+    background-color: #008000;
+    color: white;
+    border: 2px outset var(--border-blue);
+    padding: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+}
+
+#taskWidget button:hover {
+    background-color: #00AA00;
+}
 /* Syntax Highlighting */
 .keyword { color: var(--text-cyan); }
 .string { color: var(--text-yellow); }
@@ -537,6 +718,71 @@ Yardım
 </div>
 </div>
 </div>
+<!-- AYARLAR MODALI -->
+<div id="settingsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>⚙️ IDE AYARLARI (F2)</h2>
+            <button onclick="closeSettings()">X</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="setting-item">
+                <label>Tema:</label>
+                <select id="settingTheme">
+                    <option value="turbo_pascal_blue">Turbo Pascal Blue</option>
+                    <option value="midnight_black">Midnight Black</option>
+                    <option value="matrix_green">Matrix Green</option>
+                </select>
+            </div>
+            
+            <div class="setting-item">
+                <label>Font Boyutu:</label>
+                <input type="number" id="settingFontSize" value="14" min="10" max="24">
+            </div>
+            
+            <div class="setting-item">
+                <label>Font Ailesi:</label>
+                <input type="text" id="settingFontFamily" value="Consolas, monospace">
+            </div>
+            
+            <div class="setting-item">
+                <label>Otomatik Kaydet:</label>
+                <input type="checkbox" id="settingAutoSave" checked>
+            </div>
+            
+            <div class="setting-item">
+                <label>Satır Numaraları:</label>
+                <input type="checkbox" id="settingLineNumbers" checked>
+            </div>
+            
+            <div class="setting-item">
+                <label>Sözcük Kaydırma:</label>
+                <input type="checkbox" id="settingWordWrap" checked>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button onclick="saveSettings()" class="primary">💾 KAYDET</button>
+            <button onclick="closeSettings()">İPTAL</button>
+        </div>
+    </div>
+</div>
+
+<!-- GÖREV WİDGET'I -->
+<div id="taskWidget">
+    <div class="widget-header">
+        <span>📋 GÖREVLER (F11)</span>
+        <button onclick="toggleTaskWidget()" style="background:none; border:none; color:var(--text-white); cursor:pointer;">_</button>
+    </div>
+    <div class="widget-content" id="taskList">
+        <div style="text-align:center; color:#888888; padding:20px;">Henüz görev yok</div>
+    </div>
+    <div class="widget-footer">
+        <input type="text" id="newTaskInput" placeholder="Yeni görev..." onkeypress="if(event.key==='Enter')addTask()">
+        <button onclick="addTask()">➕ EKLE</button>
+    </div>
+</div>
 
 <!-- Modaller -->
 <div id="modal-new-file" class="modal">
@@ -613,23 +859,26 @@ let serverPort = 8000;
 
 // Sayfa yüklendiğinde
 document.addEventListener('DOMContentLoaded', function() {
-// Port'u URL'den al
-const urlParams = new URLSearchParams(window.location.search);
-serverPort = urlParams.get('port') || 8000;
+    // Port'u URL'den al
+    const urlParams = new URLSearchParams(window.location.search);
+    serverPort = urlParams.get('port') || 8000;
 
-// Başlangıç işlemleri
-loadSystemInfo();
-refreshFiles();
-setupEditor();
-setupKeyboardShortcuts();
+    // Başlangıç işlemleri
+    loadSystemInfo();
+    refreshFiles();
+    setupEditor();
+    setupKeyboardShortcuts();
+    
+    // YENİ: Ayarları yükle
+    loadSettings();  // <-- BUNU EKLE
 
-// Yeni bir sekme aç
-newTab('new_file.py', '# Yeni Python dosyası\ndef main():\n print("Merhaba Dünya!")\n\nif __name__ == "__main__":\n main()');
+    // Yeni bir sekme aç
+    newTab('new_file.py', '# Yeni Python dosyası\ndef main():\n print("Merhaba Dünya!")\n\nif __name__ == "__main__":\n main()');
 
-// Terminal başlangıç mesajı
-addTerminalLine('✅ ADI ANKASOFIA Hacker IDE başlatıldı', 'success');
-addTerminalLine(`📡 Sunucu: http://localhost:${serverPort}`, 'info');
-addTerminalLine('💡 İpucu: F9 tuşuna basarak kodu çalıştırabilirsiniz', 'info');
+    // Terminal başlangıç mesajı
+    addTerminalLine('✅ ADI ANKASOFIA Hacker IDE başlatıldı', 'success');
+    addTerminalLine(`📡 Sunucu: http://localhost:${serverPort}`, 'info');
+    addTerminalLine('💡 İpucu: F9 tuşuna basarak kodu çalıştırabilirsiniz', 'info');
 });
 
 // Sunucu API fonksiyonları
@@ -1154,7 +1403,210 @@ async function loadSystemInfo() {
         document.getElementById('status-python').textContent = `Python: ${result.system.python_version}`;
     }
 }
+// ========== AYARLAR ve GÖREV YÖNETİMİ (Day 2) ==========
 
+let currentSettings = {};
+let tasks = [];
+
+// MOCK DATA - Doğuhan bitince kaldırılacak
+const MOCK_SETTINGS = {
+    theme: "turbo_pascal_blue",
+    font_size: 16,
+    font_family: "Consolas, monospace",
+    auto_save: true,
+    line_numbers: true,
+    word_wrap: true
+};
+
+const MOCK_TASKS = [
+    {id: 1, title: "Day 2: JSON Handler", done: true, priority: "high"},
+    {id: 2, title: "Frontend entegrasyonu", done: false, priority: "medium"},
+    {id: 3, title: "Monaco Editor kurulumu", done: false, priority: "low"}
+];
+
+// Ayarlar Modali
+function openSettings() {
+    document.getElementById('settingsModal').style.display = 'flex';
+    loadSettings();
+}
+
+function closeSettings() {
+    document.getElementById('settingsModal').style.display = 'none';
+}
+
+function loadSettings() {
+    fetch('/api/settings')
+        .then(r => r.json())
+        .then(result => {
+            // Backend: {success: true, settings: {...}}
+            currentSettings = result.settings || result;
+            console.log("Yüklenen ayarlar:", currentSettings);
+            
+            document.getElementById('settingTheme').value = currentSettings.theme || 'turbo_pascal_blue';
+            document.getElementById('settingFontSize').value = currentSettings.font_size || 16;
+            document.getElementById('settingFontFamily').value = currentSettings.font_family || 'Consolas, monospace';
+            document.getElementById('settingAutoSave').checked = currentSettings.auto_save !== false;
+            document.getElementById('settingLineNumbers').checked = currentSettings.line_numbers !== false;
+            document.getElementById('settingWordWrap').checked = currentSettings.word_wrap !== false;
+            
+            applySettings();
+        })
+        .catch(e => console.error("Ayarlar yüklenemedi:", e));
+}
+
+function saveSettings() {
+    const settings = {
+        theme: document.getElementById('settingTheme').value,
+        font_size: parseInt(document.getElementById('settingFontSize').value),
+        font_family: document.getElementById('settingFontFamily').value,
+        auto_save: document.getElementById('settingAutoSave').checked,
+        line_numbers: document.getElementById('settingLineNumbers').checked,
+        word_wrap: document.getElementById('settingWordWrap').checked
+    };
+    
+    fetch('/api/settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(settings)
+    })
+    .then(r => r.json())
+    .then(result => {
+        console.log("Kaydetme sonucu:", result);
+        if (result.success) {
+            currentSettings = settings;
+            applySettings();
+            closeSettings();
+            addTerminalLine('💾 Ayarlar kaydedildi', 'success');
+        } else {
+            addTerminalLine('❌ Kaydetme başarısız: ' + (result.error || 'Bilinmeyen hata'), 'error');
+        }
+    })
+    .catch(e => {
+        console.error("Kaydetme hatası:", e);
+        addTerminalLine('❌ Kaydetme hatası', 'error');
+    });
+}
+
+function applySettings() {
+    const editor = document.getElementById('code-editor');
+    if (editor) {
+        editor.style.fontSize = (currentSettings.font_size || 16) + 'px';
+        editor.style.fontFamily = currentSettings.font_family || 'Consolas, monospace';
+    }
+}
+
+// Görev Widget'ı
+function toggleTaskWidget() {
+    const widget = document.getElementById('taskWidget');
+    widget.style.display = widget.style.display === 'none' ? 'block' : 'none';
+    if (widget.style.display === 'block') {
+        loadTasks();
+    }
+}
+
+function loadTasks() {
+    // MOCK - Doğuhan bitince: fetch('/api/tasks')
+    tasks = [...MOCK_TASKS];
+    renderTasks();
+}
+
+function renderTasks() {
+    const container = document.getElementById('taskList');
+    if (tasks.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#888888; padding:20px;">Henüz görev yok</div>';
+        return;
+    }
+    
+    let html = '';
+    tasks.forEach(task => {
+        const doneClass = task.done ? 'task-done' : '';
+        const checkIcon = task.done ? '✅' : '⬜';
+        const priorityClass = `task-priority-${task.priority}`;
+        const priorityIcon = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
+        
+        html += `
+            <div class="task-item ${doneClass}">
+                <span class="task-check" onclick="toggleTask(${task.id})">${checkIcon}</span>
+                <span class="${priorityClass}">${priorityIcon} ${task.title}</span>
+                <span class="task-delete" onclick="deleteTask(${task.id})">🗑️</span>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function addTask() {
+    const input = document.getElementById('newTaskInput');
+    const title = input.value.trim();
+    if (!title) return;
+    
+    const newTask = {
+        id: tasks.length + 1,
+        title: title,
+        done: false,
+        priority: 'medium',
+        created_at: new Date().toISOString()
+    };
+    
+    // MOCK - Doğuhan bitince: fetch('/api/tasks', {method:'POST', ...})
+    tasks.push(newTask);
+    input.value = '';
+    renderTasks();
+    
+    // GERÇEK API (Doğuhan bitince aç)
+    /*
+    apiRequest('/api/tasks', 'POST', newTask).then(result => {
+        if (result.success) {
+            loadTasks();
+        }
+    });
+    */
+}
+
+function toggleTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    // MOCK
+    task.done = !task.done;
+    renderTasks();
+    
+    // GERÇEK API (Doğuhan bitince aç)
+    /*
+    apiRequest(`/api/tasks/${id}`, 'PUT', {done: !task.done}).then(result => {
+        if (result.success) loadTasks();
+    });
+    */
+}
+
+function deleteTask(id) {
+    if (!confirm('Görev silinsin mi?')) return;
+    
+    // MOCK
+    tasks = tasks.filter(t => t.id !== id);
+    renderTasks();
+    
+    // GERÇEK API (Doğuhan bitince aç)
+    /*
+    apiRequest(`/api/tasks/${id}`, 'DELETE').then(result => {
+        if (result.success) loadTasks();
+    });
+    */
+}
+
+// Klavye kısayollarını güncelle
+document.addEventListener('keydown', function(e) {
+    // F2 - Ayarlar
+    if (e.key === 'F2') {
+        e.preventDefault();
+        openSettings();
+    }
+    // F11 - Görevler
+    else if (e.key === 'F11') {
+        e.preventDefault();
+        toggleTaskWidget();
+    }
+});
 // Menü dışına tıklayınca kapanması için
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.menu-item')) {

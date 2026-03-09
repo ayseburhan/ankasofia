@@ -1,0 +1,8 @@
+{
+  "theme": "turbo_pascal_blue",
+  "font_size": 20,
+  "font_family": "Consolas, monospace",
+  "auto_save": true,
+  "line_numbers": true,
+  "word_wrap": true
+}

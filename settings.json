@@ -1,0 +1,56 @@
+{
+  "app": {
+    "name": "Ankasofia IDE",
+    "version": "1.0.0",
+    "theme": "light",
+    "language": "tr",
+    "auto_save": true,
+    "auto_save_interval": 30
+  },
+  "editor": {
+    "font_size": 14,
+    "font_family": "Courier New",
+    "tab_size": 4,
+    "line_numbers": true,
+    "word_wrap": false,
+    "syntax_highlighting": true
+  },
+  "server": {
+    "host": "localhost",
+    "port": 8000,
+    "debug": false,
+    "max_file_size": 10485760,
+    "timeout": 30,
+    "cors_enabled": true
+  },
+  "security": {
+    "enable_file_operations": true,
+    "enable_code_execution": true,
+    "enable_command_execution": false,
+    "allowed_extensions": [
+      ".py",
+      ".txt",
+      ".json",
+      ".md",
+      ".html",
+      ".css",
+      ".js"
+    ]
+  },
+  "paths": {
+    "work_directory": "/Users/dogu/Downloads/ankasofia-main",
+    "temp_directory": "/tmp",
+    "backup_directory": "./backups"
+  },
+  "features": {
+    "file_manager": true,
+    "code_runner": true,
+    "git_integration": false,
+    "terminal": false
+  },
+  "metadata": {
+    "created_at": "2026-03-09T12:36:34.966337",
+    "updated_at": "2026-03-09T23:10:17.558169",
+    "author": "Ankasofia System"
+  }
+}

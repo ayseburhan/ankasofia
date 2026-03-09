@@ -16,11 +16,14 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
 import shutil
-
+from json_handler import JSONHandler
 
 class AnkasofiaRequestHandler(BaseHTTPRequestHandler):
     """Özel HTTP Request Handler"""
-    
+    def setup_json_handler(self):
+        if not hasattr(self, 'json_handler'):
+            self.json_handler = JSONHandler()
+
     def log_message(self, format, *args):
         """Log mesajlarını konsola yaz"""
         print(f"[{self.log_date_time_string()}] {args[0]}")
@@ -64,6 +67,11 @@ class AnkasofiaRequestHandler(BaseHTTPRequestHandler):
         
         print(f"GET isteği: {path}")
 
+        # JSON Handler'ı başlat
+        if not hasattr(self, 'json_handler'):
+            from json_handler import JSONHandler
+            self.json_handler = JSONHandler()
+
         # API endpoint'leri
         if path == '/api/files':
             self._handle_get_files()
@@ -73,6 +81,16 @@ class AnkasofiaRequestHandler(BaseHTTPRequestHandler):
             return
         elif path == '/api/system':
             self._handle_get_system_info()
+            return
+        elif path == '/api/settings':
+            # YENİ: Ayarları getir
+            settings = self.json_handler.load_settings()
+            self._send_json_response({'success': True, 'settings': settings})
+            return
+        elif path == '/api/tasks':
+            # YENİ: Görevleri getir
+            tasks = self.json_handler.load_tasks()
+            self._send_json_response({'success': True, 'tasks': tasks})
             return
         
         # Ana sayfa ve statik dosyalar
@@ -111,6 +129,11 @@ class AnkasofiaRequestHandler(BaseHTTPRequestHandler):
         
         print(f"POST isteği: {path}")
 
+        # JSON Handler'ı başlat
+        if not hasattr(self, 'json_handler'):
+            from json_handler import JSONHandler
+            self.json_handler = JSONHandler()
+
         try:
             if path == '/api/run':
                 self._handle_post_run()
@@ -124,13 +147,105 @@ class AnkasofiaRequestHandler(BaseHTTPRequestHandler):
                 self._handle_post_rename()
             elif path == '/api/execute':
                 self._handle_post_execute()
+            elif path == '/api/settings':
+                # YENİ: Ayarları kaydet
+                content_length = int(self.headers.get('Content-Length', 0))
+                post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+                try:
+                    data = json.loads(post_data.decode('utf-8'))
+                    success = self.json_handler.save_settings(data)
+                    self._send_json_response({'success': success})
+                except Exception as e:
+                    self._send_json_response({'success': False, 'error': str(e)}, 400)
+            elif path == '/api/tasks':
+                # YENİ: Görev ekle
+                content_length = int(self.headers.get('Content-Length', 0))
+                post_data = self.rfile.read(content_length) if content_length > 0 else b'{}'
+                try:
+                    data = json.loads(post_data.decode('utf-8'))
+                    tasks = self.json_handler.load_tasks()
+                    new_task = {
+                        "id": len(tasks["tasks"]) + 1,
+                        "title": data.get("title", "Yeni görev"),
+                        "done": False,
+                        "priority": data.get("priority", "medium")
+                    }
+                    tasks["tasks"].append(new_task)
+                    success = self.json_handler.save_tasks(tasks)
+                    self._send_json_response({'success': success, 'task': new_task})
+                except Exception as e:
+                    self._send_json_response({'success': False, 'error': str(e)}, 400)
             else:
                 print(f"Bilinmeyen endpoint: {path}")
                 self._send_json_response({'error': f'Endpoint bulunamadı: {path}'}, 404)
         except Exception as e:
             print(f"POST hatası: {e}")
             self._send_json_response({'error': str(e)}, 500)
+        
+    def do_PUT(self):
+        """PUT isteklerini işle (görev güncelleme)"""
+        parsed_path = urlparse(self.path)  # urlparse zaten import edildi
+        path = parsed_path.path
+        
+        print(f"PUT isteği: {path}")
 
+        if not hasattr(self, 'json_handler'):
+            self.json_handler = JSONHandler()
+
+        try:
+            if path.startswith('/api/tasks/'):
+                task_id = int(path.split('/')[-1])
+                data = self._read_json_body()
+                
+                tasks = self.json_handler.load_tasks()
+                for task in tasks["tasks"]:
+                    if task.get("id") == task_id:
+                        task.update(data)
+                        success = self.json_handler.save_tasks(tasks)
+                        self._send_json_response({'success': success, 'task': task})  # _send_json_response
+                        return
+                
+                self._send_json_response({'success': False, 'error': 'Görev bulunamadı'}, 404)
+            else:
+                self._send_json_response({'error': 'Bilinmeyen endpoint'}, 404)
+        except Exception as e:
+            print(f"PUT hatası: {e}")
+            self._send_json_response({'error': str(e)}, 500)
+
+    def do_DELETE(self):
+        """DELETE isteklerini işle (görev silme)"""
+        parsed_path = urlparse(self.path)  # urlparse zaten import edildi
+        path = parsed_path.path
+        
+        print(f"DELETE isteği: {path}")
+
+        if not hasattr(self, 'json_handler'):
+            self.json_handler = JSONHandler()
+
+        try:
+            if path.startswith('/api/tasks/'):
+                task_id = int(path.split('/')[-1])
+                tasks = self.json_handler.load_tasks()
+                original_len = len(tasks["tasks"])
+                tasks["tasks"] = [t for t in tasks["tasks"] if t.get("id") != task_id]
+                
+                if len(tasks["tasks"]) < original_len:
+                    success = self.json_handler.save_tasks(tasks)
+                    self._send_json_response({'success': success})  # _send_json_response
+                else:
+                    self._send_json_response({'success': False, 'error': 'Görev bulunamadı'}, 404)
+            else:
+                self._send_json_response({'error': 'Bilinmeyen endpoint'}, 404)
+        except Exception as e:
+            print(f"DELETE hatası: {e}")
+            self._send_json_response({'error': str(e)}, 500)
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
     def _read_json_body(self):
         """Request body'den JSON oku"""
         try:
